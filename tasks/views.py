@@ -40,16 +40,25 @@ def signup(request):
 def tasks(request):
     return render(request, 'tasks.html')
 
+
 def create_task(request):
     if request.method == 'GET':
         return render(request, 'create_task.html', {
             'form': TaskForm
         })
     else:
-        print(request.POST)
-        return render(request, 'create_task.html',{
-            'form': TaskForm
-        })
+        try:
+            form = TaskForm(request.POST)
+            new_task = form.save(commit=False)
+            new_task.user = request.user
+            new_task.save()
+            return redirect('tasks')
+        except ValueError:
+            return render(request, 'create_task.html', {
+                'form': TaskForm,
+                'error': 'Please provide valida data'
+            })
+
 
 def signout(request):
     logout(request)
@@ -71,6 +80,5 @@ def signin(request):
                 'error': 'Invalid username or password'
             })
         else:
-            login(request,user)
+            login(request, user)
             return redirect('tasks')
-        
